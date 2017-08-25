@@ -9,8 +9,8 @@ val sparkVersion = "2.2.0"
 libraryDependencies ++= Seq(
     "mysql" % "mysql-connector-java" % "5.1.12",
     "com.typesafe" % "config" % "1.3.1",
-    "org.apache.spark" %% "spark-core" % sparkVersion %"provided",
-    "org.apache.spark" %% "spark-mllib" % sparkVersion %"provided"
+    "org.apache.spark" %% "spark-core" % sparkVersion,
+    "org.apache.spark" %% "spark-mllib" % sparkVersion
 )
 
 mainClass in assembly := some("MixTest.sparkRecommendation")
