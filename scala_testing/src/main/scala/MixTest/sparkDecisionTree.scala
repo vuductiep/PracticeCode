@@ -1,3 +1,5 @@
+package MixTest
+
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -9,18 +11,21 @@ object sparkDecisionTree {
 
         val sc = new SparkContext("local", "Titanic")
 
-        val dataFile = sc.textFile("src/main/data/titanic3_01.csv")
+        val dataFile = sc.textFile("data/titanic3_01.csv")
         val titanicRDDP = dataFile.map(_.trim).filter(_.length() > 1).map(line => parsePassengerDataToLP(line))  // delete whitespaces and empty string
-        titanicRDDP.cache()
 
-        println("Labeled Point count " + titanicRDDP.count())
-//        titanicRDDP.foreach(println)
+        // Split data into training (60%) and test (40%).
+        val splits = titanicRDDP.randomSplit(Array(0.6, 0.4), seed = 11L)
 
-        println(titanicRDDP.first().label)
-        println(titanicRDDP.first().features)
+        // Append 1 into the training data as intercept.
+        val trainingSet = splits(0).cache()
+
+        val testSet = splits(1).cache()
+
+        println("Training set count " + trainingSet.count())
 
         val categoricalFeaturesInfo = Map[Int, Int] ()
-        val mdlTRee = DecisionTree.trainClassifier(titanicRDDP, 2, categoricalFeaturesInfo,"gini",5,32)
+        val mdlTRee = DecisionTree.trainClassifier(trainingSet, 2, categoricalFeaturesInfo,"gini",5,32)
 
         println("depth " + mdlTRee.depth)
         println(mdlTRee.toDebugString)
@@ -30,8 +35,8 @@ object sparkDecisionTree {
         // In the real world, we should split the data to train & test       and then predict the test data:
         //
 
-        val predictions = mdlTRee.predict(titanicRDDP.map(x => x.features))
-        val labelsAndPreds = titanicRDDP.map( x => x.label).zip(predictions)
+        val predictions = mdlTRee.predict(testSet.map(x => x.features))
+        val labelsAndPreds = testSet.map( x => x.label).zip(predictions)
 
         val mse = labelsAndPreds.map(vp => math.pow( (vp._1 - vp._2), 2)).reduce(_+_) / labelsAndPreds.count()
         println("Mean squared error : " + "%6f".format(mse))
@@ -41,6 +46,7 @@ object sparkDecisionTree {
         println("Accuracy = " + "%3.2f%%".format(accuracy * 100))
         println("Done")
 
+        sc.stop()
     }
 
     def getCurrentDirectory = new java.io.File (".").getCanonicalPath

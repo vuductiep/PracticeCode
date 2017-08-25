@@ -15,7 +15,7 @@ object sparkBasicStats{
         val sc = new SparkContext("local", "Test")
         println(s"Running Spark Version ${sc.version}")
 
-        val dataFile = sc.textFile("src/main/data//car-milage-no-hdr.csv")
+        val dataFile = sc.textFile("data/car-milage-no-hdr.csv")
         val carRDD = dataFile.map(line => parseCarData(line))
         //        val carRDD = MLUtils.loadLibSVMFile(sc, "src/main/data//car-milage-no-hdr.csv")
 
