@@ -25,6 +25,7 @@ object sparkSqlTest{
         val sqlDF = spark.sql("SELECT * from NWOrders where EmpliyeeID=5 and ShipCuntry='USA'")
         sqlDF.show()
 
+        df.select("")
         spark.stop()
     }
 }
