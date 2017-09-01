@@ -1,27 +1,47 @@
 import java.io.{File, PrintWriter}
 import java.sql.{Connection, DriverManager, SQLException}
 
+import sys.process._
 import scala.io.Source
 
-object ProcessText {
+object ProcessText3 {
     def main(args: Array[String]) : Unit = {
-        val pathfile = "E:\\project\\Mapmatching\\segmentindex.sql"
-//        val pathfile = "E:\\project\\Mapmatching\\test.txt"
+        val pathfile = "segmentindex.sql"
+        //        val pathfile = "E:\\project\\Mapmatching\\test.txt"
         val file = new File(pathfile)
         val bufferedSource = Source.fromFile(pathfile)
-        val pw = new PrintWriter(new File("E:\\project\\Mapmatching\\preprocessed_" + file.getName ))
+        val pw = new PrintWriter(new File("processed_" + file.getName + ".csv" ))
 
+
+        val mycon : Connection = get_mySqlConnect
+        val sql = "select (speedlimit, roadname) from mapdata  where mapid=?"
+        val pst = mycon.prepareStatement(sql)
+
+
+        println("Start converting")
+        pw.write("segment_id, link_id, vtx_1, vty_1, vtx_2, vty_2, mesh1, mesh2\n")
         var count = 0
-//        for ( line <- bufferedSource.getLines() ) {
-        for ( line <- bufferedSource.getLines().drop(44) ) {
+        //        for ( line <- bufferedSource.getLines() ) {
+        for ( line <- bufferedSource.getLines().drop(38) ) {
             count = count + 1
-            val newLine = line.replace(";", ",\n").replace("INSERT INTO `vertexdata` VALUES", "")
+            val split = line.split(",")
+
+            val link_id = split(1).toLong
+
+            pst.setLong(1,link_id)
+            val rs = pst.executeQuery()
+            rs.next()
+            val speedlimit = rs.getString("speedlimit")
+            val roadname = rs.getString("roadname")
+            val newLine = split(1) + "," + split(2) + "," + split(3) + "," + split(6) + "," + speedlimit + "," + roadname
+
             pw.write(newLine)
         }
         bufferedSource.close()
         pw.close()
-        printf("Process %d lines done ", count)
+        printf("Process %d lines done \n", count)
     }
+
 
     private def get_mySqlConnect (): Connection  = {
         var conn : Connection = null
@@ -48,3 +68,5 @@ object ProcessText {
         conn
     }
 }
+
+

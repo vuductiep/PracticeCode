@@ -1,26 +1,20 @@
-import java.io.{File, PrintWriter}
+package MixTest
+
 import java.sql.{Connection, DriverManager, SQLException}
 
-import scala.io.Source
+object VertexGeneration {
+    def main(args: Array[String]) {
+        println("Testing mysql db  with scala:")
+        val mycon : Connection = get_mySqlConnect
+        val sql = "Select * from method_info"
+        //        val sql = "select * from vertexdata limit 10"
+        val stm = mycon.createStatement
+        val rs = stm.executeQuery(sql)
 
-object ProcessText {
-    def main(args: Array[String]) : Unit = {
-        val pathfile = "E:\\project\\Mapmatching\\segmentindex.sql"
-//        val pathfile = "E:\\project\\Mapmatching\\test.txt"
-        val file = new File(pathfile)
-        val bufferedSource = Source.fromFile(pathfile)
-        val pw = new PrintWriter(new File("E:\\project\\Mapmatching\\preprocessed_" + file.getName ))
-
-        var count = 0
-//        for ( line <- bufferedSource.getLines() ) {
-        for ( line <- bufferedSource.getLines().drop(44) ) {
-            count = count + 1
-            val newLine = line.replace(";", ",\n").replace("INSERT INTO `vertexdata` VALUES", "")
-            pw.write(newLine)
+        while ( {rs.next()}){
+            val sc = rs.getString("id")
+            println(sc)
         }
-        bufferedSource.close()
-        pw.close()
-        printf("Process %d lines done ", count)
     }
 
     private def get_mySqlConnect (): Connection  = {
@@ -48,3 +42,5 @@ object ProcessText {
         conn
     }
 }
+
+
